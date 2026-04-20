@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>出張施術 同意書</title>
+
+  <!-- 必要ならLIFF IDを設定 -->
+  <meta name="liff-id" content="YOUR_LIFF_ID" />
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    :root{
+      --bg:#f2f2f2;
+      --line:#e6e6e6;
+      --text:#222;
+      --muted:#777;
+      --card:#fff;
+      --radius:6px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+    }
+    .titlebar{
+      background:#efefef;
+      border-bottom:1px solid var(--line);
+      padding:12px 14px;
+      text-align:center;
+      font-weight:800;
+      letter-spacing:.02em;
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
+    .sheet{
+      max-width:760px;
+      margin:0 auto;
+      background:var(--card);
+      border-top:1px solid var(--line);
+      border-bottom:1px solid var(--line);
+    }
+    .sectionTitle{
+      padding:16px 14px 10px;
+      font-weight:900;
+      font-size:16px;
+      background:#fafafa;
+      border-top:1px solid var(--line);
+      border-bottom:1px solid var(--line);
+    }
+    .sectionLead{
+      padding:14px;
+      line-height:1.9;
+      font-size:14px;
+      background:#fff;
+      border-top:1px solid var(--line);
+      white-space:pre-line;
+    }
+    .row{
+      display:grid;
+      grid-template-columns:160px 1fr;
+      gap:10px;
+      padding:14px;
+      border-top:1px solid var(--line);
+      align-items:start;
+    }
+    .label{
+      font-weight:800;
+      padding-top:10px;
+      line-height:1.3;
+      font-size:15px;
+    }
+    .label .req{ margin-left:4px; font-weight:900; }
+    .control{ flex:1; }
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      margin:0 0 6px;
+      line-height:1.5;
+      white-space:pre-line;
+    }
+    input, textarea{
+      width:100%;
+      border:1px solid #d6d6d6;
+      border-radius:6px;
+      padding:0 12px;
+      background:#fff;
+      font-size:16px;
+      outline:none;
+    }
+    input{ height:46px; }
+    textarea{
+      padding:10px 12px;
+      min-height:100px;
+      resize:vertical;
+      font-size:16px;
+    }
+    input:focus, textarea:focus{
+      border-color:#9bbcff;
+      box-shadow:0 0 0 3px rgba(11,99,255,.12);
+    }
+    .agreeBlock{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      padding-top:2px;
+    }
+    .agreeLine{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+      color:#222;
+      user-select:none;
+    }
+    .agreeLine input{
+      width:20px;
+      height:20px;
+      accent-color:#111;
+    }
+    .pillButton{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      height:44px;
+      padding:0 16px;
+      border-radius:999px;
+      border:2px solid #111;
+      background:#fff;
+      color:#111;
+      font-weight:900;
+      cursor:pointer;
+      width:100%;
+    }
+    .pillButton:hover{ background:#f4f4f4; }
+
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:100;
+    }
+    .modal{
+      width:min(720px,100%);
+      background:#fff;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,.25);
+      max-height:85vh;
+      display:flex;
+      flex-direction:column;
+    }
+    .modalHeader{
+      padding:14px 16px;
+      font-weight:900;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .modalClose{
+      border:0;
+      background:#f2f2f2;
+      border-radius:10px;
+      padding:8px 10px;
+      cursor:pointer;
+      font-weight:800;
+    }
+    .modalBody{
+      padding:14px 16px;
+      overflow:auto;
+      line-height:1.9;
+      font-size:14px;
+      color:#222;
+      white-space:pre-line;
+    }
+    .modalFooter{
+      padding:12px 16px;
+      border-top:1px solid var(--line);
+      display:flex;
+      gap:10px;
+    }
+    .agreeBtn{
+      flex:1;
+      height:46px;
+      border:0;
+      border-radius:12px;
+      background:#111;
+      color:#fff;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .agreeBtn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+
+    .actionsRow{
+      padding:18px 14px 22px;
+      border-top:1px solid var(--line);
+      background:#fff;
+      position:sticky;
+      bottom:0;
+      z-index:5;
+      padding-bottom:calc(22px + env(safe-area-inset-bottom));
+    }
+    .pillConfirm{
+      width:100%;
+      height:52px;
+      border-radius:999px;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+      border:2px solid #111;
+      background:#fff;
+      color:#111;
+    }
+    .pillConfirm:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+
+    .confirm{ display:none; padding:14px; }
+    .confirm h2{ margin:8px 0 12px; font-size:18px; }
+    .summary{
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+      background:#fff;
+    }
+    .sumGroupTitle{
+      padding:12px 14px;
+      background:#fafafa;
+      font-weight:900;
+      border-top:1px solid var(--line);
+    }
+    .sumGroupTitle:first-child{
+      border-top:0;
+    }
+    .sumRow{
+      display:flex;
+      gap:12px;
+      padding:12px 14px;
+      border-top:1px solid var(--line);
+    }
+    .sumKey{
+      width:200px;
+      min-width:200px;
+      color:#111;
+      font-weight:900;
+    }
+    .sumVal{
+      flex:1;
+      color:#222;
+      word-break:break-word;
+      white-space:pre-line;
+    }
+    .confirmActions{ display:flex; gap:12px; margin-top:14px; }
+    .ghost, .send{
+      flex:1;
+      height:52px;
+      border-radius:999px;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .ghost{
+      border:2px solid #666;
+      background:#fff;
+      color:#111;
+    }
+    .send{
+      border:0;
+      background:#222;
+      color:#fff;
+    }
+    .send:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+
+    @media (max-width:520px){
+      .row{ grid-template-columns:1fr; }
+      .label{ padding-top:0; }
+      .sumRow{ display:block; }
+      .sumKey{
+        width:auto;
+        min-width:0;
+        margin-bottom:6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="titlebar">出張施術 同意書</div>
+
+  <main class="sheet" id="inputView">
+    <form id="consentForm" novalidate>
+
+      <div class="sectionTitle">【お客様情報】</div>
+
+      <div class="row">
+        <div class="label">氏名<span class="req">*</span></div>
+        <div class="control">
+          <input id="customerName" type="text" placeholder="例：山田 花子" required />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">フリガナ<span class="req">*</span></div>
+        <div class="control">
+          <input id="customerKana" type="text" placeholder="例：ヤマダ ハナコ" required />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">住所（出張先）<span class="req">*</span></div>
+        <div class="control">
+          <textarea id="visitAddress" placeholder="出張先住所を入力" required></textarea>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">電話番号<span class="req">*</span></div>
+        <div class="control">
+          <input id="phone" type="tel" inputmode="tel" placeholder="例：090-1234-5678" required />
+        </div>
+      </div>
+
+      <div class="sectionTitle">【同意確認】</div>
+
+      <div class="row">
+        <div class="label">同意<span class="req">*</span></div>
+        <div class="control">
+          <div class="agreeBlock">
+            <label class="agreeLine">
+              <input id="agreeConsent" type="checkbox" disabled />
+              <span>同意事項に同意する</span>
+            </label>
+            <small class="hint">※ポップアップ内を下までスクロールすると「同意する」が押せます。</small>
+            <button class="pillButton" type="button" id="openConsent">内容を確認する</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sectionTitle">【記入日】</div>
+
+      <div class="row">
+        <div class="label">記入日<span class="req">*</span></div>
+        <div class="control">
+          <input id="fillDate" type="date" required />
+        </div>
+      </div>
+
+      <div class="actionsRow">
+        <button class="pillConfirm" type="button" id="toConfirm" disabled>確認</button>
+      </div>
+    </form>
+  </main>
+
+  <main class="sheet confirm" id="confirmView" aria-live="polite">
+    <div style="padding:14px;">
+      <h2>入力内容の確認</h2>
+      <div class="summary" id="summary"></div>
+
+      <div class="confirmActions">
+        <button class="ghost" type="button" id="backBtn">戻る</button>
+        <button class="send" type="button" id="sendBtn">送信</button>
+      </div>
+
+      <p class="hint" style="margin-top:10px;">
+        ※LINEアプリ内で開いた場合のみ送信できます。
+      </p>
+    </div>
+  </main>
+
+  <div class="modalOverlay" id="consentModal" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
+    <div class="modal">
+      <div class="modalHeader">
+        <div id="consentTitle">出張施術 同意事項</div>
+        <button class="modalClose" type="button" data-close="consentModal">閉じる</button>
+      </div>
+
+      <div class="modalBody" id="consentBody">【出張施術についての同意】
+私は、出張施術を希望するにあたり、
+下記内容について理解し、同意いたします。
+
+私は、出張施術が通常のサロン施術とは異なり、
+照明・スペース・環境等の条件により
+施術時間や仕上がりに影響が出る可能性があることを了承いたします。
+
+また、安全確保が困難と判断された場合、
+施術を中止または延期する場合があることに同意いたします。
+
+【安全および衛生に関する同意】
+私は、安全確保のため、
+施術当日に以下の状況がある場合、
+施術をお断りまたは延期される場合があることに同意いたします。
+
+・同居家族または周囲に発熱・感染症の疑いがある場合
+・お客様または同居者に体調不良がある場合
+・衛生的な環境が確保できない場合
+
+※新生児への安全配慮のため、
+状況により施術を中止する場合があることを了承いたします。
+
+【出張環境についての同意】
+私は、施術のために
+横になれるベッドまたはソファ等の準備が必要であることを理解し、
+安全に施術できるスペースの確保に協力いたします。
+
+また、施術スペースおよび周辺環境により
+施術が困難と判断された場合、
+施術をお断りする場合があることに同意いたします。
+
+―――
+
+【保健所確認に関する内容】
+本出張施術については、
+関係機関（保健所）への確認を行ったうえで実施しております。
+
+ただし、各家庭環境における衛生管理および体調管理については、
+お客様の責任において行うものとします。
+
+―――
+
+【免責および返金について】
+私は、施術に伴う効果・結果には個人差があり、
+必ずしも希望する結果が得られるものではないことを了承いたします。
+
+また、施術後に発生した肌トラブル・体調変化等については、
+体質・生活環境・体調・事前申告漏れ等による可能性があることを理解し、
+
+すべて自己責任とし、返金・損害賠償等の請求は行わないことに同意いたします。
+
+―――
+
+【出張費・キャンセルについて】
+出張施術は事前準備および移動を伴うため、
+当日キャンセルまたは無断キャンセルの場合、
+出張費等の請求が発生する場合があることに同意いたします。</div>
+
+      <div class="modalFooter">
+        <button class="agreeBtn" type="button" id="agreeConsentBtn" disabled>同意する</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    const LIFF_ID = document.querySelector('meta[name="liff-id"]')?.content || "";
+
+    const inputView = el("inputView");
+    const confirmView = el("confirmView");
+    const summaryEl = el("summary");
+
+    const customerName = el("customerName");
+    const customerKana = el("customerKana");
+    const visitAddress = el("visitAddress");
+    const phone = el("phone");
+    const fillDate = el("fillDate");
+
+    const agreeConsent = el("agreeConsent");
+    const openConsent = el("openConsent");
+    const consentModal = el("consentModal");
+    const consentBody = el("consentBody");
+    const agreeConsentBtn = el("agreeConsentBtn");
+
+    const toConfirm = el("toConfirm");
+    const backBtn = el("backBtn");
+    const sendBtn = el("sendBtn");
+
+    let liffReady = false;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      refreshConfirmButton();
+      await setupLiff();
+    });
+
+    async function setupLiff(){
+      if(!LIFF_ID || LIFF_ID === "YOUR_LIFF_ID"){
+        updateSendButtonState();
+        return;
+      }
+
+      try{
+        await liff.init({ liffId: LIFF_ID });
+        liffReady = true;
+      }catch(error){
+        console.error("LIFF init error:", error);
+      }
+
+      updateSendButtonState();
+    }
+
+    function getFormData(){
+      return {
+        customerName: customerName.value.trim(),
+        customerKana: customerKana.value.trim(),
+        visitAddress: visitAddress.value.trim(),
+        phone: phone.value.trim(),
+        fillDate: fillDate.value
+      };
+    }
+
+    function isFormRoughlyFilled(){
+      const d = getFormData();
+      return !!(d.customerName && d.customerKana && d.visitAddress && d.phone && d.fillDate);
+    }
+
+    function refreshConfirmButton(){
+      toConfirm.disabled = !(agreeConsent.checked && isFormRoughlyFilled());
+    }
+
+    function updateSendButtonState(){
+      sendBtn.disabled = !(liffReady && typeof liff !== "undefined" && liff.isInClient());
+    }
+
+    [customerName, customerKana, visitAddress, phone, fillDate].forEach(node => {
+      node.addEventListener("input", refreshConfirmButton);
+      node.addEventListener("change", refreshConfirmButton);
+    });
+
+    function openModalWithScrollGate(modalEl, bodyEl, agreeBtnEl){
+      modalEl.style.display = "flex";
+      agreeBtnEl.disabled = true;
+      bodyEl.scrollTop = 0;
+
+      const check = () => {
+        const nearBottom = bodyEl.scrollTop + bodyEl.clientHeight >= bodyEl.scrollHeight - 4;
+        if(nearBottom) agreeBtnEl.disabled = false;
+      };
+
+      check();
+      bodyEl._scrollGateHandler && bodyEl.removeEventListener("scroll", bodyEl._scrollGateHandler);
+      bodyEl._scrollGateHandler = check;
+      bodyEl.addEventListener("scroll", check, { passive:true });
+    }
+
+    openConsent.addEventListener("click", () => {
+      openModalWithScrollGate(consentModal, consentBody, agreeConsentBtn);
+    });
+
+    document.querySelectorAll("[data-close]").forEach(btn => {
+      btn.addEventListener("click", () => el(btn.dataset.close).style.display = "none");
+    });
+
+    consentModal.addEventListener("click", (e) => {
+      if(e.target === consentModal) consentModal.style.display = "none";
+    });
+
+    agreeConsentBtn.addEventListener("click", () => {
+      agreeConsent.checked = true;
+      consentModal.style.display = "none";
+      refreshConfirmButton();
+    });
+
+    function validate(){
+      const d = getFormData();
+
+      if(!d.customerName){ alert("氏名を入力してください。"); customerName.focus(); return null; }
+      if(!d.customerKana){ alert("フリガナを入力してください。"); customerKana.focus(); return null; }
+      if(!d.visitAddress){ alert("住所（出張先）を入力してください。"); visitAddress.focus(); return null; }
+      if(!d.phone){ alert("電話番号を入力してください。"); phone.focus(); return null; }
+      if(!d.fillDate){ alert("記入日を入力してください。"); fillDate.focus(); return null; }
+      if(!agreeConsent.checked){ alert("同意事項を確認し、同意してください。"); return null; }
+
+      return d;
+    }
+
+    function buildMessageText(d){
+      return [
+        "≪出張施術 同意書≫",
+        "【お客様情報】",
+        `氏名：${d.customerName}`,
+        `フリガナ：${d.customerKana}`,
+        `住所（出張先）：${d.visitAddress}`,
+        `電話番号：${d.phone}`,
+        "",
+        "【同意確認】",
+        "出張施術についての同意：同意済み",
+        "安全および衛生に関する同意：同意済み",
+        "出張環境についての同意：同意済み",
+        "保健所確認に関する内容：確認済み",
+        "免責および返金について：同意済み",
+        "出張費・キャンセルについて：同意済み",
+        "",
+        `【記入日】${d.fillDate}`
+      ].join("\n");
+    }
+
+    toConfirm.addEventListener("click", () => {
+      const d = validate();
+      if(!d) return;
+
+      summaryEl.innerHTML = `
+        <div class="sumGroupTitle">【お客様情報】</div>
+        ${sumRow("氏名", d.customerName)}
+        ${sumRow("フリガナ", d.customerKana)}
+        ${sumRow("住所（出張先）", d.visitAddress)}
+        ${sumRow("電話番号", d.phone)}
+
+        <div class="sumGroupTitle">【同意確認】</div>
+        ${sumRow("出張施術についての同意", "同意済み")}
+        ${sumRow("安全および衛生に関する同意", "同意済み")}
+        ${sumRow("出張環境についての同意", "同意済み")}
+        ${sumRow("保健所確認に関する内容", "確認済み")}
+        ${sumRow("免責および返金について", "同意済み")}
+        ${sumRow("出張費・キャンセルについて", "同意済み")}
+
+        <div class="sumGroupTitle">【記入日】</div>
+        ${sumRow("記入日", d.fillDate)}
+      `;
+
+      inputView.style.display = "none";
+      confirmView.style.display = "block";
+      updateSendButtonState();
+      window.scrollTo({ top:0, behavior:"smooth" });
+    });
+
+    backBtn.addEventListener("click", () => {
+      confirmView.style.display = "none";
+      inputView.style.display = "block";
+      window.scrollTo({ top:0, behavior:"smooth" });
+    });
+
+    sendBtn.addEventListener("click", async () => {
+      const d = validate();
+      if(!d) return;
+
+      if(!liffReady){
+        alert("LIFFの初期化がまだ完了していません。");
+        return;
+      }
+      if(!liff.isInClient()){
+        alert("LINEアプリ内で開いたときだけ送信できます。");
+        return;
+      }
+
+      const text = buildMessageText(d);
+
+      try{
+        await liff.sendMessages([{ type:"text", text }]);
+        alert("LINEに送信しました。");
+        if(liff.isInClient()) liff.closeWindow();
+      }catch(error){
+        console.error("liff.sendMessages error:", error);
+        alert(`送信に失敗しました: ${error.message || error}`);
+      }
+    });
+
+    function sumRow(key, value){
+      return `
+        <div class="sumRow">
+          <div class="sumKey">${escapeHtml(key)}</div>
+          <div class="sumVal">${escapeHtml(value)}</div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+  </script>
+</body>
+</html>
